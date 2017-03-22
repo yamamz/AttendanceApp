@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:padding="2dp"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content">
+	<android.support.v7.widget.CardView android:layout_width="match_parent"
+	                                    android:layout_height="wrap_content">
+		
+		<LinearLayout android:layout_width="match_parent"
+		              android:layout_height="match_parent"
+		android:orientation="vertical"
+		android:padding="8dp">
+			
+			<TextView android:layout_width="match_parent"
+			          android:id="@+id/name"
+			          android:layout_height="wrap_content"
+			android:text="Raymundo"
+			          
+			/>
+			<View
+				android:layout_width="fill_parent"
+				android:layout_height="1dip"
+				android:background="#FF00FF00" />
+			
+			<LinearLayout android:layout_width="match_parent"
+			              android:layout_height="wrap_content"
+			android:orientation="horizontal">
+				<ImageView android:layout_width="wrap_content"
+				           android:src="@drawable/ic_account_circle_indigo_300_48dp"
+				           android:layout_height="wrap_content"/>
+				
+				<RadioGroup
+					android:layout_width="0dp"
+					android:layout_weight="3"
+					android:id="@+id/RG_attendance_status"
+					android:orientation="horizontal"
+					android:layout_height="wrap_content">
+					
+					<RadioButton
+						android:id="@+id/leave"
+						android:layout_width="0dp"
+						android:layout_height="wrap_content"
+						android:layout_weight="1"
+						android:layout_marginLeft="20dp"
+						android:layout_marginTop="10dp"
+						android:checked="true"
+						android:text="Leave"
+						android:textSize="10sp"
+						android:textColor="#154"
+			
+						 />
+					
+					<RadioButton
+						android:textSize="10sp"
+						android:id="@+id/present"
+						android:layout_width="0dp"
+						android:layout_weight="1"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="20dp"
+						android:layout_marginTop="10dp"
+						android:checked="false"
+						android:text="Present"
+						android:textColor="#154"
+				
+					 />
+					
+					<RadioButton
+						android:textSize="10sp"
+						android:id="@+id/absent"
+						android:layout_width="0dp"
+						android:layout_weight="1"
+						android:layout_height="wrap_content"
+						android:layout_marginLeft="20dp"
+						android:layout_marginTop="10dp"
+						android:checked="false"
+						android:text="Absent"
+						android:textColor="#154"
+				
+					 />
+				</RadioGroup>
+					
+					
+</LinearLayout>
+		
+			
+			
+			
+			
+			
+			
+		</LinearLayout>
+	</android.support.v7.widget.CardView>
+
+</LinearLayout>
