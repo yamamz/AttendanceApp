@@ -76,7 +76,7 @@ public class Activity_add_student extends AppCompatActivity {
                 ActivityOptionsCompat options=ActivityOptionsCompat.makeSceneTransitionAnimation
                         (Activity_add_student.this);
 
-                Intent intent=new Intent(Activity_add_student.this,MainActivity.class);
+                Intent intent=new Intent(Activity_add_student.this,Attendance_Activity.class);
                 intent.putExtra("class_name",className);
                 startActivity(intent,options.toBundle());
 

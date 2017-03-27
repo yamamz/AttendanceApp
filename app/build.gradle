@@ -21,14 +21,21 @@ android {
 
 }
 
+
 dependencies {
+
+    compile('com.philliphsu:bottomsheetpickers:2.3.2') {
+        exclude group: 'com.android.support', module: 'appcompat-v7'
+        exclude group: 'com.android.support', module: 'design'
+        exclude group: 'com.android.support', module: 'gridlayout-v7'
+    }
+
     compile fileTree(dir: 'libs', include: ['*.jar'])
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
 
     })
-
-    compile "com.mikepenz:itemanimators:0.5.0@aar"
+    compile 'com.philliphsu:bottomsheetpickers:2.3.2'
     compile 'com.prolificinteractive:material-calendarview:1.4.3'
     compile 'com.android.support:appcompat-v7:25.3.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.0-beta5'

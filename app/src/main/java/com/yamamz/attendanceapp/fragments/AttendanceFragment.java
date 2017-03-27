@@ -4,14 +4,13 @@ package com.yamamz.attendanceapp.fragments;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
-
-import com.mikepenz.itemanimators.ScaleUpAnimator;
 import com.yamamz.attendanceapp.MainActivity;
 import com.yamamz.attendanceapp.R;
 import com.yamamz.attendanceapp.adapters.AtenndanceAdapter;
@@ -128,16 +127,14 @@ realm.commitTransaction();
         mAdapter = new AtenndanceAdapter(recyclerView.getContext(), attendanceList);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(recyclerView.getContext());
         recyclerView.setLayoutManager(mLayoutManager);
-         recyclerView.setItemAnimator(new ScaleUpAnimator());
+         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(mAdapter);
 
     }
 
     public  void  loadadateFromRealm(){
-
         if(attendanceList.size()>0){
             attendanceList.clear();
-
         }
         String class_name=((MainActivity)getActivity()).getClassName();
         Date date=((MainActivity)getActivity()).getDate();

@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                     .beginTransaction()
-                    .replace(R.id.content_main, new AttendanceFragment(),"attendanceTag")
+                    .replace(R.id.content_main, new AttendanceFragment(), "attendanceTag")
                     .commit();
         }
         Calendar cal = Calendar.getInstance();
@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
         dayWord.setText(new SimpleDateFormat("EEEE", Locale.ENGLISH).format(date.getTime()));
         dayNumber.setText(dayOfMonthStr);
         fab = (FloatingActionButton) findViewById(R.id.fab);
-        this.date=date;
+        this.date = date;
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -116,18 +116,14 @@ public class MainActivity extends AppCompatActivity {
                 switch (FabClickFlag) {
 
                     case 1:
-
-
-
-
-                       AttendanceFragment attendanceFragment = (AttendanceFragment)
-                            MainActivity.this
-                                .getSupportFragmentManager()
-                                .findFragmentByTag(getTagAttendanceFrag());
+                        AttendanceFragment attendanceFragment = (AttendanceFragment)
+                                MainActivity.this
+                                        .getSupportFragmentManager()
+                                        .findFragmentByTag(getTagAttendanceFrag());
                         attendanceFragment.SaveAttendance(className, date);
 
-                      FragmentTransaction transaction1 = getSupportFragmentManager()
-                            .beginTransaction();
+                        FragmentTransaction transaction1 = getSupportFragmentManager()
+                                .beginTransaction();
                         transaction1.setCustomAnimations(R.anim.enter_from_left, R.anim.exit_to_right, R.anim.enter_from_right, R.anim.exit_from_left);
                         transaction1.replace(R.id.content_main, new CalendarFragment());
                         transaction1.commit();
@@ -138,12 +134,10 @@ public class MainActivity extends AppCompatActivity {
                     case 0:
                         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
                         transaction.setCustomAnimations(R.anim.enter_from_left, R.anim.exit_to_right, R.anim.enter_from_right, R.anim.exit_from_left);
-                        transaction.replace(R.id.content_main, new AttendanceFragment(),"attendanceTag");
+                        transaction.replace(R.id.content_main, new AttendanceFragment(), "attendanceTag");
                         transaction.commit();
                         changeIconFabToAttendance();
                         break;
-
-
                 }
 
                 fab.startAnimation(rotate);
@@ -213,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
         this.date = date.getDate();
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.setCustomAnimations(R.anim.enter_from_left, R.anim.exit_to_right, R.anim.enter_from_right, R.anim.exit_from_left);
-        transaction.replace(R.id.content_main, new AttendanceFragment(),"attendanceTag");
+        transaction.replace(R.id.content_main, new AttendanceFragment(), "attendanceTag");
         transaction.commit();
         changeIconFabToAttendance();
 
@@ -256,7 +250,7 @@ public class MainActivity extends AppCompatActivity {
         return className;
     }
 
-    public Date getDate(){
+    public Date getDate() {
         return date;
     }
 
