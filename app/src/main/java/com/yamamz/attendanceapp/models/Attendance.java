@@ -8,23 +8,23 @@ import io.realm.RealmObject;
 
 public class Attendance extends RealmObject {
 
-    private String student;
+    private Student student;
     private String status;
 
     public Attendance() {
 
     }
 
-    public Attendance(String student, String status) {
+    public Attendance(Student student, String status) {
         this.student =student;
         this.status = status;
     }
 
-    public String getStudent() {
+    public Student getStudent() {
         return student;
     }
 
-    public void setStudent(String student) {
+    public void setStudent(Student student) {
         this.student = student;
     }
 

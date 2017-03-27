@@ -1,6 +1,7 @@
 package com.yamamz.attendanceapp.adapters;
 
 import android.content.Context;
+import android.support.annotation.IdRes;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.yamamz.attendanceapp.R;
 import com.yamamz.attendanceapp.models.Attendance;
@@ -44,8 +46,6 @@ public class AtenndanceAdapter extends RecyclerView.Adapter<AtenndanceAdapter.my
 
         }
     }
-
-
     public AtenndanceAdapter(Context context, List<Attendance> attendanceList) {
         this.context = context;
         this.attendanceList = attendanceList;
@@ -62,10 +62,34 @@ public class AtenndanceAdapter extends RecyclerView.Adapter<AtenndanceAdapter.my
     public void onBindViewHolder(myViewHolder holder, int position) {
 
         final Attendance attendance = attendanceList.get(position);
-        holder.tv_name.setText(attendance.getStudent());
-        if (attendance.getStatus().equals("absent")){
+        holder.tv_name.setText(attendance.getStudent().getFullName());
+        if (attendance.getStatus().equals("Leave")){
+            holder.rb_leave.setChecked(true);
+        }
+        if (attendance.getStatus().equals("Present")){
+            holder.rb_present.setChecked(true);
+        }
+        if (attendance.getStatus().equals("Absent")){
             holder.rb_absent.setChecked(true);
         }
+
+
+
+
+
+
+       holder.radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+           @Override
+           public void onCheckedChanged(RadioGroup radioGroup, @IdRes int i) {
+
+               RadioButton radioButton=(RadioButton)  radioGroup.findViewById(i);
+
+               attendance.setStatus(radioButton.getText().toString());
+
+               Toast.makeText(context,radioButton.getText().toString(),Toast.LENGTH_LONG).show();
+
+           }
+       });
 
     }
 

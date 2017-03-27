@@ -7,16 +7,20 @@ import io.realm.RealmObject;
  */
 
 public class Student extends RealmObject {
+
     private String fullName;
-    private int age;
+    private String address;
     private String email;
     private String mobileNumber;
     public Student(){
-    }
 
-    public Student(String fullName, int age, String email, String mobileNumber) {
+    }
+    public Student(String fullName){
+    this.fullName=fullName;
+    }
+    public Student(String fullName, String address, String email, String mobileNumber) {
         this.fullName = fullName;
-        this.age = age;
+        this.address = address;
         this.email = email;
         this.mobileNumber = mobileNumber;
     }
@@ -29,12 +33,12 @@ public class Student extends RealmObject {
         this.fullName = fullName;
     }
 
-    public int getAge() {
-        return age;
+    public String getAddress() {
+        return address;
     }
 
-    public void setAge(int age) {
-        this.age = age;
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public String getEmail() {
