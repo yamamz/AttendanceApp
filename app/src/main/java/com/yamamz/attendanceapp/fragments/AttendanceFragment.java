@@ -1,6 +1,7 @@
 package com.yamamz.attendanceapp.fragments;
 
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -10,14 +11,15 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
-import com.yamamz.attendanceapp.MainActivity;
+import android.widget.LinearLayout;
+
+import com.yamamz.attendanceapp.Attendance_Activity;
 import com.yamamz.attendanceapp.R;
 import com.yamamz.attendanceapp.adapters.AtenndanceAdapter;
 import com.yamamz.attendanceapp.models.Attendance;
 import com.yamamz.attendanceapp.models.Class_name;
+import com.yamamz.attendanceapp.models.DataHelper;
 import com.yamamz.attendanceapp.models.DateAttendance;
-import com.yamamz.attendanceapp.models.Student;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,14 +28,21 @@ import java.util.List;
 
 import io.realm.Realm;
 
-
+/**
+ * A simple {@link Fragment} subclass.
+ */
 public class AttendanceFragment extends Fragment {
+
+
+    private static final String TAG = "Activity_attendance";
+
     private RecyclerView recyclerView;
-    private View RootView;
+
     private AtenndanceAdapter mAdapter;
     private Realm realm;
     private List<Attendance> attendanceList = new ArrayList<>();
-    private List<DateAttendance> dateAttendanceList=new ArrayList<>();
+    private View rootView;
+    private LinearLayout emptyTextView;
     public AttendanceFragment() {
         // Required empty public constructor
     }
@@ -49,154 +58,138 @@ public class AttendanceFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-
-
-        String myTag =getTag();
-        ((MainActivity) getActivity()).setTagAttendanceFrag(myTag);
-
-
-        RootView=inflater.inflate(R.layout.fragment_attendance, container, false);
-
-
-
-
-        recyclerView = (RecyclerView) RootView.findViewById(R.id.recyclerView);
+        rootView= inflater.inflate(R.layout.fragment_attendance, container, false);
+        emptyTextView=(LinearLayout) rootView.findViewById(R.id.empty);
         setupRecyclerView();
-        loadadateFromRealm();
+        loadDataFromRealm();
+
+        String tag=getTag();
+        ((Attendance_Activity)getActivity()).setTabAttendance(tag);
 
 
-        return RootView;
-
+        return rootView;
     }
 
-    public void SaveAttendance(final String className, final Date dateOfAttendance){
 
-        SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yyyy");
-        String date = DATE_FORMAT.format(dateOfAttendance);
-        String attendateDatePrimary = className.concat(date);
+    private void setupRecyclerView() {
 
-realm.beginTransaction();
-        final DateAttendance dateAttendance = new DateAttendance(dateOfAttendance,
-                className, attendateDatePrimary);
-        realm.copyToRealmOrUpdate(dateAttendance);
-
-        final DateAttendance results = realm.where(DateAttendance.class).equalTo
-                ("attendancePrimaryKey",attendateDatePrimary).findFirst();
+        recyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerView);
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(recyclerView.getContext());
+        recyclerView.setLayoutManager(mLayoutManager);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        mAdapter = new AtenndanceAdapter(getActivity(), attendanceList);
+        recyclerView.setAdapter(mAdapter);
 
 
-        for (int i = 0; i < attendanceList.size(); i++) {
-            Attendance attendance = new Attendance(attendanceList.get(i).getStudent(),
-                    attendanceList.get(i).getStatus());
-            results.getAttendanceRealmList().add(attendance);
+        if (mAdapter != null) {
+            mAdapter.setCallbacks(new AtenndanceAdapter.attendanceChangeCallbacks() {
+                @Override
+                public void onRadioBuutonClicked(final String titleKey, final int index) {
+                    ((Attendance_Activity)getActivity()).changeDrawable();
+                    realm.beginTransaction();
+                    attendanceList.get(index).setStatus(titleKey);
+                    realm.commitTransaction();
+
+                }
+            });
         }
-
-        Toast.makeText(getActivity(),"Success",Toast.LENGTH_LONG).show();
-        mAdapter.notifyDataSetChanged();
-realm.commitTransaction();
-
-        realm.executeTransactionAsync(new Realm.Transaction() {
-            @Override
-            public void execute(Realm bgRealm) {
-
-
-
-
-            }
-        }, new Realm.Transaction.OnSuccess() {
-            @Override
-            public void onSuccess() {
-
-
-
-            }
-
-        });
-
+        checkAdapter();
 
     }
-
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         realm.close();
-
     }
 
-    private void setupRecyclerView() {
-        mAdapter = new AtenndanceAdapter(recyclerView.getContext(), attendanceList);
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(recyclerView.getContext());
-        recyclerView.setLayoutManager(mLayoutManager);
-         recyclerView.setItemAnimator(new DefaultItemAnimator());
-        recyclerView.setAdapter(mAdapter);
+    public void loadDataFromRealm() {
+        Date dateAttend=((Attendance_Activity)getActivity()).getDate();
+        String className=((Attendance_Activity)getActivity()).getClassName();
+        @SuppressLint("SimpleDateFormat") SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yyyy");
+        String date = DATE_FORMAT.format(dateAttend);
+        String attendateDatePrimary = className.concat(date);
+        DateAttendance dateAttendanceQuery = realm.where(DateAttendance.class).equalTo("attendancePrimaryKey", attendateDatePrimary).findFirst();
 
+   if(dateAttendanceQuery!=null){
+
+   }
+
+   else{
+    attendanceList.clear();
+    addItems();
+   }
     }
-
-    public  void  loadadateFromRealm(){
+  public   void addItems() {
         if(attendanceList.size()>0){
-            attendanceList.clear();
-        }
-        String class_name=((MainActivity)getActivity()).getClassName();
-        Date date=((MainActivity)getActivity()).getDate();
 
-        Toast.makeText(getActivity(),class_name,
-                Toast.LENGTH_LONG).show();
-
-        Toast.makeText(getActivity(),String.valueOf(date),
-                Toast.LENGTH_LONG).show();
-
-        String classname=((MainActivity)getActivity()).getClassName();
-        Date dateAttend=((MainActivity)getActivity()).getDate();
-
-        SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yyyy");
-        String dateFormat = DATE_FORMAT.format(dateAttend);
-        String attendateDatePrimary=classname.concat(dateFormat);
-
-
-
-        final DateAttendance results = realm.where(DateAttendance.class).equalTo
-                ("attendancePrimaryKey",attendateDatePrimary).findFirst();
-        try {
-            for (int i = 0; i < results.getAttendanceRealmList().size(); i++) {
-                Attendance attendance = new Attendance(results.getAttendanceRealmList()
-                        .get(i).getStudent(),
-                        results.getAttendanceRealmList().get(i).getStatus());
-                        attendanceList.add(attendance);
-            }
-            mAdapter.notifyDataSetChanged();
-        }
-        catch (Exception ignored){
-
-        }
-
-        if(attendanceList.size()<=0){
-        loadlocationsDatabase();
-        }
-
-        mAdapter.notifyDataSetChanged();
-
-
-
-
-}
-    public void loadlocationsDatabase() {
-        if (attendanceList.size() > 0) {
             attendanceList.clear();
         }
 
-        String className = ((MainActivity) getActivity()).getClassName();
-        Class_name results = realm.where(Class_name.class).equalTo
+        String className=((Attendance_Activity)getActivity()).getClassName();
+        Class_name resultsClassName = realm.where(Class_name.class).equalTo
                 ("class_name", className).findFirst();
-
-        for (int i = 0; i < results.getStudents().size(); i++) {
-            Student student = new Student(results.getStudents().get(i).getFullName());
-            Attendance attendance = new Attendance(student,
-                    "leave");
+        for (int i = 0; i < resultsClassName.getStudents().size(); i++) {
+            Attendance attendance = new Attendance(resultsClassName.getStudents().get(i), "Leave", i);
             attendanceList.add(attendance);
+            mAdapter.notifyItemRangeInserted(0, resultsClassName.getStudents().size());
 
 
         }
+
+
     }
 
-}
+    void checkAdapter(){
+        mAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onChanged() {
+                super.onChanged();
+                checkRecyclerViewIsemplty();
+            }
+            @Override
+            public void onItemRangeChanged(int positionStart, int itemCount) {
+                super.onItemRangeChanged(positionStart, itemCount);
+                checkRecyclerViewIsemplty();
+            }
 
+            @Override
+            public void onItemRangeRemoved(int positionStart, int itemCount) {
+                super.onItemRangeRemoved(positionStart, itemCount);
+                checkRecyclerViewIsemplty();
+            }
+
+            @Override
+            public void onItemRangeInserted(int positionStart, int itemCount) {
+                super.onItemRangeInserted(positionStart, itemCount);
+                checkRecyclerViewIsemplty();
+            }
+        });
+
+
+
+    }
+
+
+    public void saveItems() {
+        Date dateAttend=((Attendance_Activity)getActivity()).getDate();
+        String className=((Attendance_Activity)getActivity()).getClassName();
+        DataHelper.addItems(realm, className, dateAttend, attendanceList);
+    }
+
+
+
+
+    private void checkRecyclerViewIsemplty(){
+        if(mAdapter.getItemCount()==0){
+
+            emptyTextView.setVisibility(View.VISIBLE);
+        }
+        else{
+
+            emptyTextView.setVisibility(View.GONE);
+        }
+
+
+    }
+}

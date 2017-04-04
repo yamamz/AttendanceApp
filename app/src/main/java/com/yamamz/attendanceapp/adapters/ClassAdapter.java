@@ -15,25 +15,36 @@ import com.yamamz.attendanceapp.ActivityAddClass;
 import com.yamamz.attendanceapp.R;
 import com.yamamz.attendanceapp.models.Class_name;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import io.realm.OrderedRealmCollection;
+import io.realm.RealmRecyclerViewAdapter;
 
 /**
  * Created by AMRI on 3/23/2017.
  */
 
-public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.myViewHolder> {
+public class ClassAdapter extends RealmRecyclerViewAdapter<Class_name, ClassAdapter.myViewHolder> {
 
     private List<Class_name> class_names;
     private Context context;
     private int mBackground;
+    private boolean inDeletionMode = false;
+    private Set<Integer> countersToDelete = new HashSet<Integer>();
 
 
-    public ClassAdapter( Context context,List<Class_name> class_names) {
+
+
+    public ClassAdapter(Context context, OrderedRealmCollection<Class_name> class_names) {
+        super(class_names, true);
         this.class_names = class_names;
         this.context = context;
         TypedValue mTypedValue = new TypedValue();
         context.getTheme().resolveAttribute(R.attr.selectableItemBackground, mTypedValue, true);
         mBackground = mTypedValue.resourceId;
+        setHasStableIds(true);
     }
 
     class myViewHolder extends RecyclerView.ViewHolder {
@@ -42,14 +53,26 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.myViewHolder
         final View mView;
         private CardView cardView;
         private TextView initial;
+
         public myViewHolder(View itemView) {
             super(itemView);
-            mView=itemView;
-cardView=(CardView) itemView.findViewById(R.id.class_card);
-initial=(TextView) itemView.findViewById(R.id.initial);
+            mView = itemView;
+            cardView = (CardView) itemView.findViewById(R.id.class_card);
+            initial = (TextView) itemView.findViewById(R.id.initial);
             Tv_className = (TextView) itemView.findViewById(R.id.tv_className);
         }
     }
+
+
+    @Override
+
+    public long getItemId(int index) {
+
+        return getItem(index).getCount();
+
+    }
+
+
     @Override
     public myViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.class_list_item, parent, false);
@@ -68,7 +91,7 @@ initial=(TextView) itemView.findViewById(R.id.initial);
         int colorRandom = (int) (Math.random() * circles.length());
 
 
-        String name= holder.Tv_className.getText().toString();
+        String name = holder.Tv_className.getText().toString();
         if (!name.equals("")) {
             holder.initial.setText(name.substring(0, 1));
         }
@@ -82,15 +105,23 @@ initial=(TextView) itemView.findViewById(R.id.initial);
 
                 ((ActivityAddClass) context).maketransition(class_name.getClass_name());
 
-              //  ActivityOptions options=ActivityOptions.makeSceneTransitionAnimation(context,
-               //         "change_bound",)
-
             }
         });
 
-    //    int[] androidColors = context.getResources().getIntArray(R.array.randomColor);
-   //    int randomAndroidColor = androidColors[new Random().nextInt(androidColors.length)];
-  //    holder.constraintLayout.setBackgroundColor(randomAndroidColor);
+
+    }
+
+    public void enableDeletionMode(boolean enabled) {
+
+        inDeletionMode = enabled;
+
+        if (!enabled) {
+
+            countersToDelete.clear();
+
+        }
+
+        notifyDataSetChanged();
 
     }
 

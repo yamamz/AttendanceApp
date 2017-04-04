@@ -17,4 +17,7 @@
 	<string name="title">Add Student</string>
 	<string name="positive">Add</string>
 	<string name="title_activity_attendance">Attendance</string>
+	<string name="empty_list_nplease_click_calendar_button_to_add_attendance">Empty List Please
+		click Calendar Button to add attendance
+	</string>
 </resources>

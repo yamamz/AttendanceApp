@@ -231,8 +231,6 @@ public class Activity_add_student extends AppCompatActivity {
     public void loadlocationsDatabase() {
         if (student_names.size() > 0) {
             student_names.clear();
-
-
         }
         Class_name results = realm.where(Class_name.class).equalTo
                 ("class_name", className).findFirst();

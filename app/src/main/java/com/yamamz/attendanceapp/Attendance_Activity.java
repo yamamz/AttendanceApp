@@ -5,11 +5,14 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.transition.Slide;
 import android.view.Gravity;
@@ -18,18 +21,13 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.philliphsu.bottomsheetpickers.BottomSheetPickerDialog;
 import com.philliphsu.bottomsheetpickers.date.DatePickerDialog;
 import com.philliphsu.bottomsheetpickers.time.BottomSheetTimePickerDialog;
-import com.yamamz.attendanceapp.adapters.AtenndanceAdapter;
-import com.yamamz.attendanceapp.models.Attendance;
-import com.yamamz.attendanceapp.models.Class_name;
-import com.yamamz.attendanceapp.models.DateAttendance;
-import com.yamamz.attendanceapp.models.Student;
+import com.yamamz.attendanceapp.fragments.AttendanceFragment;
+import com.yamamz.attendanceapp.fragments.HistoryAttendanceFragment;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -37,26 +35,30 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import io.realm.Realm;
-
 public class Attendance_Activity extends AppCompatActivity implements
         BottomSheetTimePickerDialog.OnTimeSetListener, DatePickerDialog.OnDateSetListener {
+          private static final String TAG = "Activity_attendance";
 
-    private static final boolean USE_BUILDERS = false;
-    private static final String TAG = "Activity_attendance";
 
-    private RecyclerView recyclerView;
-    private View RootView;
-    private AtenndanceAdapter mAdapter;
-    private Realm realm;
-    private List<Attendance> attendanceList = new ArrayList<>();
-    private static final DateFormat FORMATTER = SimpleDateFormat.getDateInstance();
     private TextView dayWord;
     private TextView dayNumber;
-    private FloatingActionButton fab;
     private Animation slideDown, fadeIn, fadeOut, rotate;
     private String className;
     private Date dateOfAttendance;
+    private Date dateset;
+
+    private FloatingActionButton fab;
+    private int fabState = 0;
+
+    private String tabAttendance;
+
+    public String getTabAttendance() {
+        return tabAttendance;
+    }
+
+    public void setTabAttendance(String tabAttendance) {
+        this.tabAttendance = tabAttendance;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,21 +66,24 @@ public class Attendance_Activity extends AppCompatActivity implements
         setContentView(R.layout.activity_attendance);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        Calendar calenDar = Calendar.getInstance();
+        dateOfAttendance = calenDar.getTime();
 
-        Realm.init(this);
-        realm = Realm.getDefaultInstance();
+        ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
+        if (viewPager != null) {
+            setupViewPager(viewPager);
+        }
+        TabLayout tabLayout = (TabLayout)findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(viewPager);
 
         Intent startingIntent = getIntent();
         className = startingIntent.getStringExtra("class_name");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             setupWindowAnimations();
         }
-
         CollapsingToolbarLayout collapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
         collapsingToolbar.setTitle(className);
-
         setDateLogo();
-
         slideDown = AnimationUtils.loadAnimation(getApplicationContext(),
                 R.anim.slide_down);
         fadeIn = AnimationUtils.loadAnimation(getApplicationContext(),
@@ -89,26 +94,92 @@ public class Attendance_Activity extends AppCompatActivity implements
                 R.anim.rotate);
 
 
-        recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-        setupRecyclerView();
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                DialogFragment dialog = createDialog();
-                dialog.show(getSupportFragmentManager(), TAG);
+                switch (fabState) {
 
+                    case 0:
+
+                        DialogFragment dialog = createDialog();
+                        dialog.show(getSupportFragmentManager(), TAG);
+                        break;
+                    case 1:
+                        AttendanceFragment attendanceFragment=(AttendanceFragment)Attendance_Activity.this
+                                .getSupportFragmentManager()
+                                .findFragmentByTag(getTabAttendance());
+                        attendanceFragment.saveItems();
+
+
+                        fabState = 0;
+                        fab.startAnimation(rotate);
+                        fab.getAnimation().setAnimationListener(new Animation.AnimationListener() {
+                            @Override
+                            public void onAnimationStart(Animation animation) {
+
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animation animation) {
+
+                                fab.setImageDrawable(ContextCompat.getDrawable(Attendance_Activity.this, R
+                                        .drawable
+                                        .ic_date_range_white_48dp));
+
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animation animation) {
+                            }
+                        });
+
+
+                        break;
+                }
 
 
             }
         });
 
-        Calendar cal = Calendar.getInstance();
-        Date date = cal.getTime();
-       loadadateFromRealm(date);
+
     }
+
+    public String getClassName(){
+
+        return className;
+    }
+
+   public void changeDrawable() {
+        if (fabState == 0) {
+            fab.startAnimation(rotate);
+            fab.getAnimation().setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {
+
+                }
+
+                @Override
+                public void onAnimationEnd(Animation animation) {
+
+                    fab.setImageDrawable(ContextCompat.getDrawable(Attendance_Activity.this, R
+                            .drawable
+                            .ic_playlist_add_check_white_36dp));
+                    fabState = 1;
+
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+                }
+            });
+
+
+        }
+    }
+
 
     private DialogFragment createDialog() {
 
@@ -139,7 +210,6 @@ public class Attendance_Activity extends AppCompatActivity implements
         dateDialog.setDayOfWeekHeaderTextColorSelected(0xFFFF4081);
         dateDialog.setDayOfWeekHeaderTextColorUnselected(0x4AFF4081);
         dialog.setThemeDark(true);
-
         return dialog;
 
     }
@@ -181,131 +251,59 @@ public class Attendance_Activity extends AppCompatActivity implements
         dayNumber.setText(dayOfMonthStr);
     }
 
-    private void setupRecyclerView() {
-        mAdapter = new AtenndanceAdapter(Attendance_Activity.this, attendanceList);
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(recyclerView.getContext());
-        recyclerView.setLayoutManager(mLayoutManager);
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
-        recyclerView.setAdapter(mAdapter);
-    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        realm.close();
-    }
-
-
-    public void loadadateFromRealm(Date dateAttend) {
-
-        if (attendanceList.size() > 0) {
-            attendanceList.clear();
-
-        }
-
-
-        String classname = className;
-
-
-        SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yyyy");
-        String dateFormat = DATE_FORMAT.format(dateAttend);
-        String attendateDatePrimary = classname.concat(dateFormat);
-
-
-        final DateAttendance results = realm.where(DateAttendance.class).equalTo
-                ("attendancePrimaryKey", attendateDatePrimary).findFirst();
-        try {
-            for (int i = 0; i < results.getAttendanceRealmList().size(); i++) {
-                Attendance attendance = new Attendance(results.getAttendanceRealmList()
-                        .get(i).getStudent(),
-                        results.getAttendanceRealmList().get(i).getStatus());
-                attendanceList.add(attendance);
-            }
-            mAdapter.notifyDataSetChanged();
-        } catch (Exception ignored) {
-
-        }
-
-        if (results==null) {
-            Toast.makeText(this,"Ok",Toast.LENGTH_LONG).show();
-                loadlocationsDatabase();
-
-        }
-
-        mAdapter.notifyDataSetChanged();
-
-    }
-
-    public void loadlocationsDatabase() {
-        if (attendanceList.size() > 0) {
-            attendanceList.clear();
-        }
-
-        Class_name results = realm.where(Class_name.class).equalTo
-                ("class_name", className).findFirst();
-
-        for (int i = 0; i < results.getStudents().size(); i++) {
-            Student student = new Student(results.getStudents().get(i).getFullName());
-            Attendance attendance = new Attendance(student,
-                    "Leave");
-            attendanceList.add(attendance);
-            mAdapter.notifyDataSetChanged();
-
-
-        }
-    }
-
-    public void SaveAttendance(final String className, final Date dateOfAttendance){
-
-        SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yyyy");
-        String date = DATE_FORMAT.format(dateOfAttendance);
-        String attendateDatePrimary = className.concat(date);
-
-        realm.beginTransaction();
-        final DateAttendance dateAttendance = new DateAttendance(dateOfAttendance,
-                className, attendateDatePrimary);
-        realm.copyToRealmOrUpdate(dateAttendance);
-
-        final DateAttendance results = realm.where(DateAttendance.class).equalTo
-                ("attendancePrimaryKey",attendateDatePrimary).findFirst();
-
-
-        for (int i = 0; i < attendanceList.size(); i++) {
-            Attendance attendance = new Attendance(attendanceList.get(i).getStudent(),
-                    attendanceList.get(i).getStatus());
-            results.getAttendanceRealmList().add(attendance);
-        }
-        Toast.makeText(this,"Success",Toast.LENGTH_LONG).show();
-        mAdapter.notifyDataSetChanged();
-        realm.commitTransaction();
-
-        realm.executeTransactionAsync(new Realm.Transaction() {
-            @Override
-            public void execute(Realm bgRealm) {
-
-
-
-
-            }
-        }, new Realm.Transaction.OnSuccess() {
-            @Override
-            public void onSuccess() {
-
-
-
-            }
-
-        });
-
 
     }
 
 
+
+    private void setupViewPager(ViewPager viewPager) {
+
+        Adapter adapter = new Adapter(getSupportFragmentManager());
+        adapter.addFragment(new AttendanceFragment(),"Attendance");
+        adapter.addFragment(new HistoryAttendanceFragment(),"History");
+        viewPager.setAdapter(adapter);
+
+    }
+    static class Adapter extends FragmentPagerAdapter {
+        private final List<Fragment> mFragments = new ArrayList<>();
+        private final List<String> mFragmentTitles = new ArrayList<>();
+
+        Adapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        void addFragment(Fragment fragment, String title) {
+            mFragments.add(fragment);
+            mFragmentTitles.add(title);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            return mFragments.get(position);
+        }
+
+        @Override
+        public int getCount() {
+            return mFragments.size();
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return mFragmentTitles.get(position);
+        }
+    }
+
+public Date getDate(){
+    return dateOfAttendance;
+}
     @Override
     public void onTimeSet(ViewGroup viewGroup, int hourOfDay, int minute) {
 
     }
-
     @Override
     public void onDateSet(DatePickerDialog dialog, int year, int monthOfYear, int dayOfMonth) {
         Calendar cal = new java.util.GregorianCalendar();
@@ -313,8 +311,15 @@ public class Attendance_Activity extends AppCompatActivity implements
         cal.set(Calendar.MONTH, monthOfYear);
         cal.set(Calendar.DAY_OF_MONTH, dayOfMonth);
         SetDateOnitemChange(cal);
-        Date date=cal.getTime();
-        loadadateFromRealm(date);
+        Date date = cal.getTime();
+        dateset = cal.getTime();
+        dateOfAttendance = cal.getTime();
+                AttendanceFragment attendanceFragment=(AttendanceFragment)Attendance_Activity.this
+                .getSupportFragmentManager()
+                .findFragmentByTag(getTabAttendance());
+                 attendanceFragment.addItems();
+
+
 
     }
 }

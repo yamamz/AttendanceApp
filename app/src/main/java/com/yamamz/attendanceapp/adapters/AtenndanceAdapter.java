@@ -1,5 +1,6 @@
 package com.yamamz.attendanceapp.adapters;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.support.annotation.IdRes;
 import android.support.v7.widget.RecyclerView;
@@ -14,17 +15,30 @@ import android.widget.Toast;
 import com.yamamz.attendanceapp.R;
 import com.yamamz.attendanceapp.models.Attendance;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by AMRI on 3/20/2017.
  */
 
-public class AtenndanceAdapter extends RecyclerView.Adapter<AtenndanceAdapter.myViewHolder> {
 
+
+public class AtenndanceAdapter extends  RecyclerView.Adapter <AtenndanceAdapter.myViewHolder> {
+
+
+    private attendanceChangeCallbacks mCallbacks;
+    public interface attendanceChangeCallbacks {
+     public void onRadioBuutonClicked(String titleKey,int index);
+
+    }
 
     private List<Attendance> attendanceList;
     private Context context;
+
+    private boolean inDeletionMode = false;
+    private Set<Integer> countersToDelete = new HashSet<Integer>();
 
     class myViewHolder extends RecyclerView.ViewHolder {
 
@@ -46,52 +60,90 @@ public class AtenndanceAdapter extends RecyclerView.Adapter<AtenndanceAdapter.my
 
         }
     }
+
+    public void setCallbacks(attendanceChangeCallbacks callbacks) {
+        this.mCallbacks = callbacks;
+    }
+
     public AtenndanceAdapter(Context context, List<Attendance> attendanceList) {
         this.context = context;
         this.attendanceList = attendanceList;
+        setHasStableIds(false);
     }
 
+
+
+
+  public   void enableDeletionMode(boolean enabled) {
+
+        inDeletionMode = enabled;
+
+        if (!enabled) {
+
+            countersToDelete.clear();
+
+        }
+
+        notifyDataSetChanged();
+
+    }
+
+    Set<Integer> getCountersToDelete() {
+        return countersToDelete;
+    }
+
+
+    public void clear() {
+        int size = this.attendanceList.size();
+        if (size > 0) {
+            for (int i = 0; i < size; i++) {
+                this.attendanceList.remove(0);
+            }
+            this.notifyItemRangeRemoved(0, size);
+        }
+    }
+
+
+
     @Override
+
     public myViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_student_attendance, parent, false);
         return new myViewHolder(itemView);
     }
 
-    private RadioButton lastCheckedRB = null;
     @Override
-    public void onBindViewHolder(myViewHolder holder, int position) {
+    public void onBindViewHolder(final myViewHolder holder, @SuppressLint("RecyclerView") final int position) {
 
         final Attendance attendance = attendanceList.get(position);
         holder.tv_name.setText(attendance.getStudent().getFullName());
-        if (attendance.getStatus().equals("Leave")){
-            holder.rb_leave.setChecked(true);
-        }
-        if (attendance.getStatus().equals("Present")){
-            holder.rb_present.setChecked(true);
-        }
-        if (attendance.getStatus().equals("Absent")){
-            holder.rb_absent.setChecked(true);
-        }
 
+       if (attendance.getStatus().equals("Leave")) {
+           holder.rb_leave.setChecked(true);
+       }
+       if (attendance.getStatus().equals("Present")) {
+           holder.rb_present.setChecked(true);
+       }
+       if (attendance.getStatus().equals("Absent")) {
+           holder.rb_absent.setChecked(true);
 
-
-
-
-
+   }
+        Toast.makeText(context,String.valueOf(attendanceList.size()),Toast.LENGTH_SHORT).show();
        holder.radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
            @Override
            public void onCheckedChanged(RadioGroup radioGroup, @IdRes int i) {
-
                RadioButton radioButton=(RadioButton)  radioGroup.findViewById(i);
 
-               attendance.setStatus(radioButton.getText().toString());
 
-               Toast.makeText(context,radioButton.getText().toString(),Toast.LENGTH_LONG).show();
+               if (mCallbacks != null) {
+                   mCallbacks.onRadioBuutonClicked(radioButton.getText().toString(),position);
+               }
 
            }
        });
 
     }
+
 
 
     @Override
